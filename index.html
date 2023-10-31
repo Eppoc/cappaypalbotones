@@ -15,6 +15,32 @@
     <h2 style="text-align: center;">Captura de pagos por botón negro de PayPal (tarjetas de crédito y débito) v1</h2>
     
     <style>
+    .animated-footer {
+  overflow: hidden;
+  white-space: nowrap;
+  width: 100%;
+  background-color: #333; /* Cambia el color de fondo según tus preferencias */
+}
+
+.scrolling-text {
+  animation: scroll 15s linear infinite;
+  color: #fff; /* Cambia el color del texto según tus preferencias */
+}
+
+@keyframes scroll {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+/* Estilos para el texto fijo */
+.fixed-text {
+    font-size: 16px; /* Tamaño de fuente igual al texto animado */
+    display: none; /* Inicialmente oculto */
+}
         /* Estilos generales */
         body {
             font-family: 'Arial', sans-serif;
@@ -391,7 +417,7 @@ p:hover{
     // Verificar si se proporciona un objeto 'row'
     if (row) {
         perfilUsuario.innerHTML = `
-            <h2>Perfil de usuario</h2>
+            <h3>Perfil de usuario</h3>
             <p>Nombre: ${row.nombre} ${row.apellido}</p>
             <p>Email: ${row.email}</p>
             <p>ID de usuario en Paypal: ${row.IDuser_pp}</p>
@@ -407,7 +433,7 @@ p:hover{
         `;
 
         compra.innerHTML = `
-            <h2>Compra</h2>
+            <h3>Compra</h3>
             <p>ID pago paypal: ${row.id_pp}</p>
             <p>ID oferta kajabi: ${row.ID_oferta}</p>
             <p>Título oferta: ${row.tit_ofer}</p>
@@ -736,5 +762,26 @@ botonAqui.addEventListener('click', () => {
 
 
     </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+          // Función para obtener la fecha actual
+          function getCurrentDate() {
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            return now.toLocaleDateString('es-ES', options);
+          }
+      
+          // Mostrar la fecha actual en el elemento con el id "current-date"
+          const currentDateElement = document.getElementById('current-date');
+          if (currentDateElement) {
+            currentDateElement.textContent = getCurrentDate();
+          }
+        });
+      </script>
+   <footer class="animated-footer">
+    <div class="scrolling-text">En desarrollo:  <span id="current-date"></span></div>
+   
+
+</footer>
 </body>
 </html>
