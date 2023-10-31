@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabla de Captura de Botones de PayPal</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="font\font-awesome-4.7.0\css\font-awesome.min.css">
+ 
+
+</head>
+<body>
+    
+    <h2 style="text-align: center;">Captura de pagos por botón negro de PayPal (tarjetas de crédito y débito) v1</h2>
+    
+    <style>
+        /* Estilos generales */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Estilos para el contenedor de la tabla */
+.detalle-seccion.resumen-ventas{
+    width: 100%;
+            max-height: 400px;
+            margin: 20px auto;
+            margin-top:5px;
+            padding: 10px;
+            overflow-x: auto;
+            border: 1px solid #ccc;
+            background-color: #fff;
+            border-radius: 5px;
+}
+
+
+        .table-container {
+            width: 80%;
+            max-height: 400px;
+            margin: 20px auto;
+            margin-top:5px;
+            padding: 10px;
+            overflow-x: auto;
+            border: 1px solid #ccc;
+            background-color: #fff;
+            border-radius: 5px;
+        }
+
+        /* Estilos para la tabla */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            text-align: left;
+            padding: 8px;
+            font-size: 14px;
+        }
+
+        th {
+            background-color: #eee5ed;
+        }
+
+        /* Barra de deslizamiento vertical */
+        .table-container::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .table-container::-webkit-scrollbar-thumb {
+            background-color: #888;
+        }
+
+        .table-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        tr:hover {
+            background-color: #bbafe2;
+            cursor: pointer;
+        }
+
+        /* Estilos para la contenedor de información detallada */
+        .detalle-contenedor {
+            display: flex;
+            justify-content: space-between;
+            width: 80%;
+            margin: 0 auto;
+            font-size: 14px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-top: 20px;
+            padding: 10px;
+        }
+
+        .detalle-seccion {
+            width: 48%;
+            padding: 10px;
+        }
+
+        /* Estilos para la fila seleccionada */
+        tr.selected {
+            background-color: #2b74c8;
+            color: white;
+        
+        }
+        tr.null-id_u_kj td:nth-child(5) {
+            background-color: #9395dc; /* Rojo claro */
+            color: white;
+        }
+        .search-container {
+    text-align: center;
+    margin: 20px auto;
+}
+p:hover{
+    background-color: #bbafe2;
+}
+#searchInput {
+            padding: 5px;
+            font-size: 12px;
+        }
+
+        #searchInput::placeholder {
+            color: #888;
+        }
+
+        #searchButton {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+       
+        #totalVentas {
+            color: red;
+            margin-left: 5px;
+        }
+
+        #resultadoConsulta {
+            font-size: 12px;
+        }
+
+        /* Estilos para los botones */
+        #contadorVentas {
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+}
+
+.boton {
+    background-color: #2b74c8;
+    color: white;
+    
+    font-size: 12px;
+    border: none;
+    cursor: pointer;
+    
+    border-radius: 12px;
+}
+.boton:hover{
+    background-color: #bbafe2;
+}
+
+.resultado-consulta {
+    text-align: center;
+    margin: 0 10px;
+}
+#totalVentas{
+    padding-right: 20px;
+    
+}
+#Ventasdiariastit{
+    padding-right: 10px;
+}
+.total-ventas {
+    background-color: white;
+    padding: 10px;
+    display: inline-block;
+    margin-right: 20px;
+    font-size: 12px;
+}
+
+.ventas-diarias {
+    background-color: white;
+    display: inline-block;
+    padding: 10px;
+    font-size: 12px;
+    margin-right: 20px;
+}
+#paispopcont {
+    background-color: white;
+    display: inline-block;
+    padding: 10px;
+    font-size: 12px;
+}
+.total-ingresos{
+    background-color: white;
+    padding: 10px;
+    display: inline-block;
+    margin-right: 20px;
+    font-size: 12px;
+}
+#totaling{
+    color:red;
+}
+#aqui{
+    cursor: pointer;
+}
+#aqui:hover{
+    background-color: #bbafe2;
+}
+    </style>
+ <div class="search-container">
+    <input type="text" id="searchInput" placeholder="Buscar en la tabla">
+    <button onclick="buscarEnTabla()">Buscar</button>
+    
+</div>
+<div id="contadorVentas">
+    <div class="total-ventas" id="aqui">
+        Total de Ventas: <span id="totalVentas">0</span>
+    </div>
+    <div class="total-ingresos">
+        Total de ingresos: <span id="totaling">0</span> USD
+    </div>
+    <div class="ventas-diarias">
+        Ventas Diarias:
+        <button id="botonRetroceder" class="boton">
+            <i class="fa fa-angle-double-left" aria-hidden="true"></i>
+        </button>
+        <span id="resultadoConsulta" class="resultado-consulta"></span>
+        <button id="botonAvanzar" class="boton">
+            <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+        </button>
+    </div>
+    <div id="paispopcont">
+        <span id="paispop" class="paises"></span>
+    </div>
+</div>
+
+</div>
+
+
+</div>   
+<div class="table-container">
+      
+      
+        <table>
+            <thead>
+                <tr>
+                    <th>ID Transacción Paypal</th>
+                    <th>Título de oferta</th>
+                    <th>Pago</th>
+                    <th>Email</th>
+                    <th>ID Kajabi</th>
+                    <th>Fecha de pago</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <!-- Datos de la tabla se llenarán aquí -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="detalle-contenedor">
+        <div class="detalle-seccion perfil-usuario">
+            <h2>Perfil de usuario</h2>
+            <p>Nombre: </p>
+            <p>Email: </p>
+            <p>ID de usuario en Paypal: </p>
+            <p>ID de usuario en Kajabi: </p>
+            <p>ID Pago del usuario: </p>
+            <p>Dirección 1: </p>
+            <p>Región/Zona: </p>
+            <p>Ciudad: </p>
+           
+            <p>Código Postal: </p>
+            <p>Código País: </p>
+            <p>Pais: </p>
+        </div>
+
+        <div class="detalle-seccion compra">
+            <h2>Compra</h2>
+            <p>ID pago paypal: </p>
+            <p>ID oferta kajabi: </p>
+            <p>Título oferta: </p>
+            <p>Precio: </p>
+            <p>Cupón: </p>
+            <p>Moneda: </p>
+        </div>
+
+        <div class="detalle-seccion resumen-ventas" style="display: none;">
+            <table id="tablaResumen">
+                <thead>
+                    <tr>
+                        <th>Título oferta</th>
+                        <th>Número de ventas</th>
+                        <th>Total de ventas</th>
+                        <th>Número de usuarios</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaResumenBody">
+                    <!-- Los datos de la tabla se llenarán aquí -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const { createClient } = supabase;
+            const _supabase = createClient('https://yhfyasuswpdzupdzllvo.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InloZnlhc3Vzd3BkenVwZHpsbHZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE2ODk5ODM4NTcsImV4cCI6MjAwNTU1OTg1N30.ORQTRiX-X72q81RcsXww1nk75POlGgHQwKX6Meb4wzk');
+     
+
+
+
+
+
+
+
+
+
+
+
+
+         let currentSearch = '';
+
+       
+
+
+        async function fetchData() {
+            
+            const { data, error } = await _supabase.from('Captura_botones_paypal').select('*').order('created_at', { ascending: false });
+
+            if (error) {
+                console.error('Error al consultar datos:', error);
+            } else {
+                const tableBody = document.getElementById('tableBody');
+                data.forEach((row) => {
+
+
+                    
+                    const newRow = document.createElement('tr');
+                    
+                    newRow.innerHTML = `
+                        <td>${row.id_pp}</td>
+                        <td>${row.tit_ofer}</td>
+                        <td>${row.amount}</td>
+                        <td>${row.email}</td>
+                        <td>${row.id_u_kj ? row.id_u_kj : "Aún no accede al curso"}</td>
+                        <td>${row.created_at}</td>
+                    `;
+                    tableBody.appendChild(newRow);
+
+                    newRow.addEventListener('click', function () {
+                       // console.log(row);
+                      
+                        mostrarInformacionDetallada.call(this, row);
+                    });
+                    if (row.id_u_kj === null) {
+                        newRow.classList.add('null-id_u_kj');
+                    }
+                });
+                if (data.length > 0) {
+                    // Mostrar los detalles del primer elemento de la tabla
+                    mostrarInformacionDetallada.call(tableBody.children[0], data[0]);
+                }
+                const totalVentas = data.length;
+    const contadorVentas = document.getElementById('totalVentas');
+    contadorVentas.textContent = totalVentas;
+
+   
+
+
+
+            }
+        }
+
+        function mostrarInformacionDetallada(row) {
+           // const perfilUsuario = document.querySelector('.detalle-seccion.perfil-usuario');
+    //const compra = document.querySelector('.detalle-seccion.compra');
+    const perfilUsuario = document.querySelector('.detalle-seccion.perfil-usuario');
+    const compra = document.querySelector('.detalle-seccion.compra');
+    const resumenVentas = document.querySelector('.detalle-seccion.resumen-ventas');
+
+    // Ocultar la sección de resumen-ventas y mostrar las secciones de perfil-usuario y compra
+    resumenVentas.style.display = 'none';
+    perfilUsuario.style.display = 'block';
+    compra.style.display = 'block';
+    // Verificar si se proporciona un objeto 'row'
+    if (row) {
+        perfilUsuario.innerHTML = `
+            <h2>Perfil de usuario</h2>
+            <p>Nombre: ${row.nombre} ${row.apellido}</p>
+            <p>Email: ${row.email}</p>
+            <p>ID de usuario en Paypal: ${row.IDuser_pp}</p>
+            <p>ID de usuario en Kajabi: ${row.id_u_kj ? row.id_u_kj : "Aún no accede al curso"}</p>
+            <p>ID Pago del usuario: ${row.id_pp_p}</p>
+            <p>Dirección 1: ${row.direc}</p>
+            <p>Región/Zona: ${row.direcb}</p>
+            <p>Ciudad: ${row.direcc}</p>
+            
+            <p>Código Postal: ${row.direce}</p>
+            <p>Código País: ${row.direcd}</p>
+            <p>Pais: ${row.pais}</p>
+        `;
+
+        compra.innerHTML = `
+            <h2>Compra</h2>
+            <p>ID pago paypal: ${row.id_pp}</p>
+            <p>ID oferta kajabi: ${row.ID_oferta}</p>
+            <p>Título oferta: ${row.tit_ofer}</p>
+            <p>Precio: ${row.amount}</p>
+            <p>Cupón: ${row.coupon ? row.coupon : "Sin cupón"}</p>
+            <p>Moneda: ${row.moneda}</p>
+            <p>ID de Factura en QuickBooks: ${row.id_factura ? row.id_factura :"Facturando..."}</p>
+            <p>Usuario en QuickBooks: ${row.us_quick}</p>
+            <p>Usuario agregado al curso via zapier-grantoffer: ${row.grantkaj}</p>
+        `;
+    } else {
+        // Si no se proporciona un objeto 'row', puedes mostrar un mensaje de error o borrar los detalles.
+        perfilUsuario.innerHTML = '<h2>Perfil de usuario</h2><p>No se encontró información.</p>';
+        compra.innerHTML = '<h2>Compra</h2><p>No se encontró información.</p>';
+    }
+
+    const tableRows = document.querySelectorAll('#tableBody tr');
+    tableRows.forEach((tableRow) => {
+        tableRow.classList.remove('selected');
+    });
+
+    if (this) {
+        this.classList.add('selected');
+    }
+}
+       
+
+        function buscarEnTabla() {
+            const searchEmail = document.getElementById('searchInput').value.toLowerCase(); // Obtener el correo electrónico a buscar en minúsculas
+  const tableRows = document.querySelectorAll('#tableBody tr');
+  
+  tableRows.forEach((tableRow) => {
+    const emailCell = tableRow.cells[3].textContent.toLowerCase(); // Obtener el correo electrónico en la fila actual en minúsculas
+
+    // Verificar si el correo electrónico en la fila coincide con la búsqueda
+    if (emailCell.includes(searchEmail)) {
+      tableRow.style.display = ''; // Mostrar la fila si coincide
+      tableRow.click(); 
+      
+    } else {
+      tableRow.style.display = 'none'; // Ocultar la fila si no coincide
+    }
+  });
+  
+}
+
+        fetchData(); // Llama a la función para iniciar la consulta de datos
+
+        let recuentosPorDia = [];
+let indiceActual = 0;
+
+async function cargarDatosIniciales() {
+    const { data, error } = await _supabase
+        .from('Captura_botones_paypal')
+        .select('created_at')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Error al cargar datos iniciales:', error);
+    } else {
+        if (data.length > 0) {
+            const fechas = data.map((registro) => {
+                const fecha = new Date(registro.created_at);
+                return fecha.toISOString().split('T')[0];
+            });
+
+            recuentosPorDia = obtenerRecuentoPorDia(fechas);
+            mostrarRecuentoActual();
+        }
+    }
+}
+
+function obtenerRecuentoPorDia(fechas) {
+    const recuentoPorDia = {};
+    fechas.forEach((fecha) => {
+        recuentoPorDia[fecha] = (recuentoPorDia[fecha] || 0) + 1;
+    });
+    return recuentoPorDia;
+}
+
+function mostrarRecuentoActual() {
+    const resultadoConsulta = document.getElementById('resultadoConsulta');
+    const fechaActual = Object.keys(recuentosPorDia)[indiceActual];
+    resultadoConsulta.innerHTML = fechaActual + ': <span style="color: red;">' + recuentosPorDia[fechaActual] + '</span>';
+}
+
+function avanzarRecuento() {
+    if (indiceActual < Object.keys(recuentosPorDia).length - 1) {
+        indiceActual++;
+        mostrarRecuentoActual();
+    }
+}
+
+function retrocederRecuento() {
+    if (indiceActual > 0) {
+        indiceActual--;
+        mostrarRecuentoActual();
+    }
+}
+
+// Carga los datos iniciales cuando se carga la página
+cargarDatosIniciales();
+
+// Agrega botones para avanzar y retroceder en la lista de recuentos
+const botonAvanzar = document.getElementById('botonAvanzar');
+botonAvanzar.addEventListener('click', avanzarRecuento);
+
+const botonRetroceder = document.getElementById('botonRetroceder');
+botonRetroceder.addEventListener('click', retrocederRecuento);
+
+async function contarPaisesRepetidos() {
+  const { data, error } = await _supabase
+    .from('Captura_botones_paypal')
+    .select('pais');
+
+  if (error) {
+    console.error('Error al consultar los países:', error);
+    return;
+  }
+
+  if (data.length === 0) {
+    console.log('No se encontraron datos de países.');
+    return;
+  }
+
+  // Crear un objeto para realizar el conteo de repeticiones de cada país
+  const conteoPaises = {};
+
+  data.forEach((registro) => {
+    const pais = registro.pais;
+    // Si es la primera vez que se encuentra este país, inicializa el conteo en 1; de lo contrario, incrementa el conteo
+    conteoPaises[pais] = (conteoPaises[pais] || 0) + 1;
+  });
+
+  // Encuentra el país con el número más alto de repeticiones
+  let paisMasRepetido = null;
+  let maxRepeticiones = 0;
+
+  for (const pais in conteoPaises) {
+    if (conteoPaises[pais] > maxRepeticiones) {
+      maxRepeticiones = conteoPaises[pais];
+      paisMasRepetido = pais;
+    }
+  }
+
+  if (paisMasRepetido) {
+    console.log('Número más alto de repeticiones: ', maxRepeticiones);
+    console.log('País más repetido: ', paisMasRepetido);
+
+    // Número total de países diferentes
+    const numPaisesDiferentes = Object.keys(conteoPaises).length;
+    console.log('Número total de países diferentes: ', numPaisesDiferentes);
+
+    // Calcular el porcentaje al que corresponde el país más repetido
+    const porcentajePaisMasRepetido = (maxRepeticiones / data.length) * 100;
+    console.log('Porcentaje del país más repetido: ', porcentajePaisMasRepetido, '%');
+    const paisPopElement = document.getElementById('paispop');
+    paisPopElement.textContent = `País más popular: ${paisMasRepetido} / ${porcentajePaisMasRepetido.toFixed(2)}%`;
+  } else {
+    console.log('No se encontraron datos de países.');
+  }
+}
+
+contarPaisesRepetidos();
+
+async function sumarIngresos() {
+  const { data, error } = await _supabase
+    .from('Captura_botones_paypal')
+    .select('valor');
+
+  if (error) {
+    console.error('Error al consultar los valores de ingreso:', error);
+    return;
+  }
+
+  if (data.length === 0) {
+    console.log('No se encontraron datos de ingresos.');
+    return;
+  }
+
+  // Inicializar la suma en 0
+  let totalIngresos = 0;
+
+  data.forEach((registro) => {
+    const valor = registro.valor;
+
+    // Convertir el valor a número
+    const valorNumerico = parseFloat(valor);
+
+    if (!isNaN(valorNumerico)) {
+      // Si la conversión es exitosa, agregar el valor a la suma total
+      totalIngresos += valorNumerico;
+    }
+  });
+  const totalingresosprecios = document.getElementById('totaling');
+  totalingresosprecios.textContent = totalIngresos;
+  // Mostrar el total de ingresos
+  console.log('Total de ingresos:', totalIngresos);
+}
+
+sumarIngresos();
+/*
+let suscripcionActiva = false;
+let CapturaBotonesPaypal;
+
+
+/*Función para iniciar la suscripción en tiempo real
+function iniciarActualizacionesEnTiempoReal() {
+ 
+     CapturaBotonesPaypal = _supabase.channel('custom-all-channel')
+  .on(
+    'postgres_changes',
+    { event: '*', schema: 'public', table: 'Captura_botones_paypal' },
+    (payload) => {
+      console.log('Change received!', payload)
+      fetchData();
+    }
+  )
+  .subscribe()
+
+    suscripcionActiva = true;
+    console.log('Suscripción activada.');
+ 
+}
+
+// Función para detener la suscripción en tiempo real
+function detenerActualizacionesEnTiempoReal() {
+    CapturaBotonesPaypal.unsubscribe();
+    console.log('Suscripción desactivada.'); 
+}
+
+// Agregar un botón para activar la suscripción
+const btnActivarRT = document.getElementById('btnActivarRT');
+btnActivarRT.addEventListener('click', iniciarActualizacionesEnTiempoReal);
+
+// Agregar un botón para desactivar la suscripción
+const btnDesactivarRT = document.getElementById('btnDesactivarRT');
+btnDesactivarRT.addEventListener('click', detenerActualizacionesEnTiempoReal);*/
+let cadena = '';
+let repeticiones = 0;
+let sumaValor = 0;
+let totalIngresos = 0;
+let resultados = []; // Almacena los resultados
+let correos = '';
+async function contarCadenasYSumarValor() {
+    resultados = [];
+
+    const { data, error } = await _supabase
+        .from('Captura_botones_paypal')
+        .select('tit_ofer, valor, email');
+
+    if (error) {
+        console.error('Error al consultar los datos:', error);
+        return;
+    }
+
+    if (data.length === 0) {
+        console.log('No se encontraron datos en la columna "tit_ofer".');
+        return;
+    }
+
+    // Crear un objeto para realizar el conteo de repeticiones de cada cadena de texto y sumar el valor correspondiente
+    const conteoCadenas = {};
+
+    data.forEach((registro) => {
+        cadena = registro.tit_ofer;
+        const valor = parseFloat(registro.valor) || 0;
+        correos = registro.email;
+        if (!isNaN(valor)) {
+            // Si es la primera vez que se encuentra esta cadena, inicializa el conteo y la suma en 1; de lo contrario, incrementa el conteo y la suma
+            if (!conteoCadenas[cadena]) {
+                conteoCadenas[cadena] = { repeticiones: 1, sumaValor: valor, correos: new Set([correos]) };
+            } else {
+                conteoCadenas[cadena].repeticiones += 1;
+                conteoCadenas[cadena].sumaValor += valor;
+                conteoCadenas[cadena].correos.add(correos);
+            }
+        }
+    });
+
+    // Mostrar las cadenas de texto, su número de repeticiones y la suma del valor en la consola
+    for (const cadena in conteoCadenas) {
+        const { repeticiones, sumaValor, correos } = conteoCadenas[cadena];
+        const numUsuarios = correos.size;
+        resultados.push({ cadena, repeticiones, sumaValor, numUsuarios });
+        console.log(`Cadena de texto: "${cadena}" - Repeticiones: ${repeticiones} - Suma del Valor: ${sumaValor} - Número de Usuarios: ${numUsuarios}`);
+    }
+}
+
+// Resto del código sigue igual
+
+
+// Llama a la función para contar las cadenas repetidas y sumar el valor correspondiente
+
+const botonAqui = document.getElementById('aqui');
+botonAqui.addEventListener('click', () => {
+    contarCadenasYSumarValor().then(() => {
+        const detalleSeccion = document.querySelector('.detalle-seccion.perfil-usuario');
+        const detalleSeccioncompra = document.querySelector('.detalle-seccion.compra');
+        const resumenVentas = document.querySelector('.detalle-seccion.resumen-ventas');
+        const tablaResumenBody = document.getElementById('tablaResumenBody');
+        
+        // Mostrar resumen-ventas y ocultar detalle-seccion
+        detalleSeccion.style.display = 'none';
+        detalleSeccioncompra.style.display = 'none';
+        resumenVentas.style.display = 'block';
+        
+        // Obtén los datos que deseas mostrar en la tabla de resumen
+        let resumen = '';
+
+        // Llenar la tabla con los resultados
+        resultados.forEach((resultado) => {
+            resumen += `
+                <tr>
+                    <td>${resultado.cadena}</td>
+                    <td>${resultado.repeticiones}</td>
+                    <td>${resultado.sumaValor.toFixed(2)}</td>
+                    <td>${resultado.numUsuarios}</td>
+                </tr>
+            `;
+        });
+
+        tablaResumenBody.innerHTML = resumen;
+    });
+});
+
+
+    </script>
+</body>
+</html>
