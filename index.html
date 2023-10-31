@@ -241,7 +241,7 @@ p:hover{
     </style>
  <div class="search-container">
     <input type="text" id="searchInput" placeholder="Buscar en la tabla">
-    <button onclick="buscarEnTabla()">Buscar</button>
+    <button id="searchButton">Buscar</button>
     
 </div>
 <div id="contadorVentas">
@@ -461,21 +461,47 @@ p:hover{
     }
 }
        
+const searchInput = document.getElementById('searchInput');
+const searchButton = document.getElementById('searchButton');
+
+// Agrega un controlador de eventos para la tecla "Enter" en el campo de entrada
+searchInput.addEventListener('keyup', (event) => {
+  if (event.key === 'Enter') {
+    buscarEnTabla();
+  }
+});
+
+// Agrega un controlador de eventos para el botón de búsqueda
+searchButton.addEventListener('click', () => {
+  buscarEnTabla();
+});
+
+
 
         function buscarEnTabla() {
-            const searchEmail = document.getElementById('searchInput').value.toLowerCase(); // Obtener el correo electrónico a buscar en minúsculas
+            const searchInput = document.getElementById('searchInput').value.toLowerCase(); // Obtener el texto de búsqueda en minúsculas
   const tableRows = document.querySelectorAll('#tableBody tr');
-  
-  tableRows.forEach((tableRow) => {
-    const emailCell = tableRow.cells[3].textContent.toLowerCase(); // Obtener el correo electrónico en la fila actual en minúsculas
 
-    // Verificar si el correo electrónico en la fila coincide con la búsqueda
-    if (emailCell.includes(searchEmail)) {
-      tableRow.style.display = ''; // Mostrar la fila si coincide
+  tableRows.forEach((tableRow) => {
+    let found = false; // Variable para verificar si se encontró el término de búsqueda en alguna celda
+
+    // Recorrer todas las celdas de la fila actual
+    for (let i = 0; i < tableRow.cells.length; i++) {
+      const cellText = tableRow.cells[i].textContent.toLowerCase(); // Obtener el contenido de la celda en minúsculas
+
+      // Verificar si el término de búsqueda se encuentra en la celda
+      if (cellText.includes(searchInput)) {
+        found = true;
+        break; // Si se encuentra en una celda, no es necesario seguir buscando en otras celdas
+      }
+    }
+
+    // Mostrar u ocultar la fila según si se encontró el término de búsqueda
+    if (found) {
+      tableRow.style.display = ''; // Mostrar la fila si se encontró en alguna celda
       tableRow.click(); 
-      
     } else {
-      tableRow.style.display = 'none'; // Ocultar la fila si no coincide
+      tableRow.style.display = 'none'; // Ocultar la fila si no se encontró en ninguna celda
     }
   });
   
