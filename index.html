@@ -256,6 +256,32 @@ p:hover{
 #aqui:hover{
     background-color: #bbafe2;
 }
+#export{
+    margin-left: 20px;
+    background-color: white;
+    display: inline-block;
+    padding: 10px;
+    font-size: 12px;
+    border-top-right-radius: 10px;
+    border-top-left-radius: 10px;
+    cursor: pointer;
+}
+#export:hover{
+    background-color: #bbafe2;
+}
+#exportdet{
+    margin-left: 20px;
+    background-color: white;
+    display: inline-block;
+    padding: 10px;
+    font-size: 12px;
+    border-top-right-radius: 10px;
+    border-top-left-radius: 10px;
+    cursor: pointer;
+}
+#exportdet:hover{
+    background-color: #bbafe2;
+}
     </style>
  <div class="search-container">
     <input type="text" id="searchInput" placeholder="Buscar en la tabla">
@@ -282,12 +308,20 @@ p:hover{
     <div id="paispopcont">
         <span id="paispop" class="paises"></span>
     </div>
+    <div id="export">
+        <div id="exportarCSV">Exportar todo <i class="fa fa-file-text-o" aria-hidden="true"></i></div>
+             </div>
+<div id="exportdet">
+    <div id="exportarDetalleCSV">Exportar detalle <i class="fa fa-file-text-o" aria-hidden="true"></i></div>
 </div>
 
 </div>
 
+</div>
 
 </div>   
+
+
 <div class="table-container">
       
       
@@ -357,10 +391,114 @@ p:hover{
             const _supabase = createClient('https://yhfyasuswpdzupdzllvo.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InloZnlhc3Vzd3BkenVwZHpsbHZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE2ODk5ODM4NTcsImV4cCI6MjAwNTU1OTg1N30.ORQTRiX-X72q81RcsXww1nk75POlGgHQwKX6Meb4wzk');
      
 
+// Obtén una referencia al botón de exportar CSV
+const exportarCSVButton = document.getElementById('exportarCSV');
+
+// Agrega un controlador de eventos para el botón
+exportarCSVButton.addEventListener('click', () => {
+    exportarDataCSV();
+});
+
+// Función para exportar la data de la base de datos en formato CSV
+async function exportarDataCSV() {
+    try {
+        // Consulta la data de la base de datos desde Supabase
+        const { data, error } = await _supabase
+            .from('Captura_botones_paypal')
+            .select('*');
+
+        if (error) {
+            console.error('Error al consultar datos:', error);
+            return;
+        }
+
+        if (data.length === 0) {
+            console.log('No se encontraron datos en la base de datos.');
+            return;
+        }
+
+        // Convierte la data en formato CSV
+        const csvContent = convertirDataACSV(data);
+
+        // Crea un enlace de descarga y establece el contenido del archivo CSV
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'data.csv';
+        a.style.display = 'none';
+
+        // Agrega el enlace al documento y simula un clic para iniciar la descarga
+        document.body.appendChild(a);
+        a.click();
+
+        // Limpia el enlace y libera el recurso
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+    } catch (error) {
+        console.error('Error al exportar la data en formato CSV:', error);
+    }
+}
+
+// Función para convertir la data en formato CSV
+function convertirDataACSV(data) {
+    const headers = Object.keys(data[0]).join(',');
+    const csvRows = data.map((row) => Object.values(row).join(','));
+    return headers + '\n' + csvRows.join('\n');
+}
 
 
 
+// Obtén una referencia al botón de exportar detalle a CSV
+const exportarDetalleCSVButton = document.getElementById('exportarDetalleCSV');
 
+// Agrega un controlador de eventos para el botón
+exportarDetalleCSVButton.addEventListener('click', () => {
+    exportarDetalleCSV();
+});
+
+// Función para exportar el contenido del detalle a un archivo CSV
+function exportarDetalleCSV() {
+    try {
+        // Obtén el elemento que contiene el detalle
+        const detalleContenedor = document.querySelector('.detalle-contenedor');
+
+        // Verifica si el detalle-contenedor está presente
+        if (detalleContenedor) {
+            const detalleContenido = detalleContenedor.textContent;
+
+            // Convierte el contenido en formato CSV
+            const csvContent = convertirDetalleACSV(detalleContenido);
+
+            // Crea un enlace de descarga y establece el contenido del archivo CSV
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'detalle.csv';
+            a.style.display = 'none';
+
+            // Agrega el enlace al documento y simula un clic para iniciar la descarga
+            document.body.appendChild(a);
+            a.click();
+
+            // Limpia el enlace y libera el recurso
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        } else {
+            console.log('No se encontró el elemento "detalle-contenedor".');
+        }
+    } catch (error) {
+        console.error('Error al exportar el detalle en formato CSV:', error);
+    }
+}
+
+// Función para convertir el contenido en formato CSV (personaliza según la estructura del detalle)
+function convertirDetalleACSV(detalleContenido) {
+    // Esta función depende de la estructura del detalle. Puedes personalizarla según tu necesidad.
+    // En este ejemplo, simplemente se toma el contenido del detalle y se coloca en un archivo CSV.
+    return detalleContenido;
+}
 
 
 
